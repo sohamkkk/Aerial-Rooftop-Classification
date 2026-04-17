@@ -1,48 +1,104 @@
 # Automated Aerial Rooftop Classification
 
-This repository contains the end-to-end Computer Vision and Deep Learning pipeline for identifying, extracting, and classifying rooftop topological structures (Gable, Hip, Flat) from large-scale satellite imagery.
+An end-to-end Computer Vision and Deep Learning pipeline for extracting, annotating, and classifying rooftop types (**Gable**, **Hip**, **Flat**) from large-scale aerial satellite imagery.
+
+---
 
 ## 🚀 Project Overview
-Working with unannotated aerial building masks presents mathematical and scaling challenges. This project solves that via a comprehensive 3-step engineering pipeline:
-1.  **Computer Vision Extraction:** Utilizing OpenCV Connected-Component algorithms iteratively over geospatial masks to mathematically snap bounding coordinates to roofs and extract isolated image tensors.
-2.  **Custom Web Tooling:** A lightweight, high-performance Flask web application designed for rapid keyboard-driven dataset annotation, allowing for the generation of a pristine 100% human-verified Ground Truth labeling dataset.
-3.  **Deep Learning Ablation & Classification:** Employing PyTorch to run comprehensive Architectural and Hyperparameter Ablation Studies over the visual crops to construct a highly optimized `ResNet18` and `MobileNetV3` deployment capable of correctly determining topology.
+
+Classifying rooftop geometry from overhead satellite imagery is a non-trivial task — rooftops lack the directional gravity cues present in ground-level photographs, exhibit high inter-class similarity, and appear at varying scales across tiles. This project tackles that challenge through a systematic 3-phase pipeline:
+
+1. **Computer Vision Extraction** — OpenCV connected-component analysis on binary building masks to isolate **2,294 individual rooftop crops** from 890 aerial tiles.
+2. **Custom Annotation Toolkit** — A purpose-built Flask web application with keyboard shortcuts enabling rapid human labeling, producing a **100% human-verified ground truth** of **1,445 labeled crops**.
+3. **Deep Learning Classification & Ablation Study** — A rigorous 6-part ablation study comparing 5 architectures, 4 augmentation strategies, 3 freeze configurations, 5 input resolutions, 4 dataset sizes, and weighted vs. unweighted sampling — totaling **23 distinct experiments**.
 
 ---
 
 ## 📂 Repository Structure
 
-### 1. Data Processing Pipeline
-*   `filtering_images.py` - Scans the raw satellite map masks and computationally filters images lacking rooftop density to prevent empty compute operations.
-*   `extract_rooftop_crops.py` - Connects components from the binary masks to slice and extract the `2,400+` padded rooftop subsets into the dataset.
-*   `tif_to_jgp.py` - Normalizes geospatial `.tif` mask outputs into standard channels for CNN input.
+```
+├── filtering_images.py                  # Filters tiles without rooftops
+├── tif_to_jgp.py                        # Converts .tif masks to .jpg
+├── extract_rooftop_crops.py             # Extracts individual rooftop crops
+├── labeling_tool.py                     # Flask-based annotation web app
+├── train_classifier.py                  # ResNet18 fine-tuning pipeline
+├── test_classifier.py                   # Evaluation on verified dataset
+├── Rooftop_Classification_Study_Final.ipynb  # Master ablation notebook
+├── requirements.txt                     # Python dependencies
+├── Rooftop_Crops/                       # Cropped images + labels.json
+├── model/                               # Trained model weights (.pth)
+└── study_results/                       # 9 ablation study plots + metrics
+```
 
-### 2. Annotation Front-End
-*   `labeling_tool.py` - The custom Flask backend that serves a rapid-annotation UI locally, tracking annotation status, class distributions, and dynamically building the verified `labels.json` dataset map.
+### Data Processing Pipeline
+| File | Purpose |
+|------|---------|
+| `filtering_images.py` | Scans raw satellite masks and filters out tiles with no rooftop content |
+| `tif_to_jgp.py` | Converts geospatial `.tif` mask files to standard `.jpg` format |
+| `extract_rooftop_crops.py` | Uses connected-component analysis to extract 2,294 padded rooftop crops |
 
-### 3. Classification Engine
-*   `train_classifier.py` - Natively compiles the `ResNet18` model, utilizing advanced Data Augmentation algorithms (rotation invariance, color jittering) and Weighted Label Samplers to beat the inherent class skew.
-*   `test_classifier.py` - Pulls the trained `rooftop_classifier.pth` weights and executes a final benchmark Evaluation across the 100% human-verified validation set, ultimately achieving **85.8% Final Accuracy**.
+### Annotation Toolkit
+| File | Purpose |
+|------|---------|
+| `labeling_tool.py` | Flask web app with keyboard-driven annotation (1=Gable, 2=Hip, 3=Flat) |
 
-### 4. Ablation Study & Results
-*   `/study_results/` - A directory showcasing 9 algorithmically generated PNG insight graphs created during the rigorous Deep Learning evaluation constraints.
-*   `Rooftop_Classification_Study.ipynb` - The massive 6-Part Master Evaluation notebook encompassing 6 separate mathematical deep-dives (Architectural tests, Augmentation, Freeze Layer mechanics, and Resolution scale correlations).
+### Classification & Evaluation
+| File | Purpose |
+|------|---------|
+| `train_classifier.py` | Fine-tunes ResNet18 with augmentation + weighted sampling |
+| `test_classifier.py` | Evaluates trained model on the full human-verified dataset |
+| `Rooftop_Classification_Study_Final.ipynb` | Complete 6-part ablation study notebook (run on Colab with GPU) |
 
 ---
 
-## 📊 Key Findings
+## 📊 Key Results
 
-During the extensive Ablation sweep, the architectural capabilities of standard Neural Networks were charted when processing overhead aerial shapes:
+### Architecture Comparison
 
 ![Architecture Comparison](study_results/1_architecture_comparison.png)
 
-1.  **The Transformer/ConvNeXt Push:** The study demonstrates that lightweight edge-deployment models like `MobileNetV3` (1.2M params) perform remarkably well (81.5% accuracy) against heavily parameterized architectures natively, making them ideal for drone-based deployment operations.
-2.  **Inherent Label Constraints:** The models strictly mandated rotation-inclusive geometric augmentations and Weighted Random Samplers due to the lack of spatial gravity in overhead satellite shots and Hip-to-Flat topological skew.
+| Architecture | Accuracy | F1 Score | Parameters |
+|---|---|---|---|
+| ResNet-50 | **83.1%** | **0.833** | 22.07M |
+| MobileNetV3-Small | 81.5% | 0.819 | 1.27M |
+| ResNet-18 | 80.4% | 0.806 | 10.49M |
+| EfficientNet-B0 | 79.4% | 0.799 | 3.16M |
+| Simple CNN (baseline) | 57.7% | 0.522 | 0.39M |
+
+### Dataset Statistics
+| Class | Count | Proportion |
+|---|---|---|
+| Hip | 697 | 48.2% |
+| Gable | 509 | 35.2% |
+| Flat | 239 | 16.5% |
+| **Total** | **1,445** | 100% |
+
+### Ablation Study Highlights
+- **Weighted sampling** improved accuracy from 79.4% → 83.1% (+3.7%)
+- **160×160 input resolution** outperformed both smaller (64px: 69.3%) and larger (224px: 81.5%) sizes
+- **Heavy augmentation** (rotation-invariant transforms) yielded the best generalization for aerial imagery
+- **Partial freezing** matched full fine-tuning at half the compute cost
+- **Full freezing** (linear probe only) collapsed to 55.6%, confirming ImageNet features alone are insufficient for overhead geometry
+
+---
 
 ## 🛠️ Usage
-1. Clone the repository and install requirements: 
-   ```bash
-   pip install -r requirements.txt
-   ```
-2. Unzip your crops into the `/Rooftop_Crops/` directory.
-3. Open `Rooftop_Classification_Study.ipynb` via Jupyter/Colab to execute the real-time architectural evaluations.
+
+### Installation
+```bash
+git clone https://github.com/<your-username>/<repo-name>.git
+cd <repo-name>
+pip install -r requirements.txt
+```
+
+### Running the Ablation Study (Google Colab)
+1. Upload `Rooftop_Classification_Study_Final.ipynb` and `Rooftop_Crops/` (as a zip) to Colab.
+2. Set runtime to **T4 GPU**.
+3. Add a cell at the top: `!unzip -q Rooftop_Crops.zip`
+4. Run all cells.
+
+### Running the Labeling Tool
+```bash
+python labeling_tool.py
+# Open http://localhost:5555 in your browser
+```

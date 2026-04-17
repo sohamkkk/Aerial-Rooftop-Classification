@@ -27,6 +27,7 @@ Classifying rooftop geometry from overhead satellite imagery is a non-trivial ta
 ├── requirements.txt                     # Python dependencies
 ├── Rooftop_Crops/                       # Cropped images + labels.json
 ├── model/                               # Trained model weights (.pth)
+├── report and slides/                   # Report and PPT
 └── study_results/                       # 9 ablation study plots + metrics
 ```
 

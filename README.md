@@ -87,8 +87,8 @@ Classifying rooftop geometry from overhead satellite imagery is a non-trivial ta
 
 ### Installation
 ```bash
-git clone https://github.com/<your-username>/<repo-name>.git
-cd <repo-name>
+git clone https://github.com/sohamkkk/Aerial-Rooftop-Classification.git
+cd Aerial-Rooftop-Classification
 pip install -r requirements.txt
 ```
 

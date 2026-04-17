@@ -1,6 +1,6 @@
-# Automated Aerial Rooftop Classification
+# Aerial Rooftop Classification
 
-An end-to-end Computer Vision and Deep Learning pipeline for extracting, annotating, and classifying rooftop types (**Gable**, **Hip**, **Flat**) from large-scale aerial satellite imagery.
+A basic Computer Vision and Deep Learning pipeline for extracting, annotating, and classifying rooftop types (**Gable**, **Hip**, **Flat**) from large-scale aerial satellite imagery.
 
 ---
 

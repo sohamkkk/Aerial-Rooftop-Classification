@@ -1,5 +1,5 @@
 """
-Step 3: Train a Rooftop Type Classifier
+Train a Rooftop Type Classifier
 =========================================
 Trains a ResNet18 model (pretrained on ImageNet) to classify
 individual rooftop crops into: Gable, Hip, or Flat.
